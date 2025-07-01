@@ -1,29 +1,34 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agent Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Platforms</h2>
-    <ul>
-      <li data-tab="defender" class="active">Microsoft Defender</li>
-      <li data-tab="arcticwolf">Arctic Wolf</li>
-      <li data-tab="sccm">SCCM</li>
-      <li data-tab="rapid7">Rapid7</li>
-      <li data-tab="crossref">Cross-Reference</li>
-    </ul>
+  <h1>Agent Dashboard</h1>
+
+  <div id="tabs">
+    <button class="tab-btn active" data-platform="defender">Defender</button>
+    <button class="tab-btn" data-platform="articwolf">ArcticWolf</button>
+    <button class="tab-btn" data-platform="sccm">SCCM</button>
+    <button class="tab-btn" data-platform="rapid7">Rapid7</button>
+    <button class="tab-btn" data-platform="crossref">Cross Reference</button>
   </div>
-  <div class="main">
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Search by machine name...">
-    </div>
-    <div id="content"></div>
+
+  <div id="api-note" class="api-note">
+    <strong>Note:</strong> Backend API connection is pending AWS access. Displaying sample data.
   </div>
+
+  <div id="filter-container">
+    <input type="text" id="searchInput" placeholder="Search by hostname or status..." />
+  </div>
+
+  <div id="table-container"></div>
+
+  <button id="refreshBtn">Refresh Data</button>
+
   <script src="script.js"></script>
 </body>
 </html>

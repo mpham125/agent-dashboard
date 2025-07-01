@@ -1,48 +1,104 @@
-const tabs = ["Defender", "Arctic Wolf", "SCCM", "Rapid7", "Cross-Reference"];
-let currentTab = "Defender";
+// Mock sample data for each platform
+const mockData = {
+  defender: [
+    { hostname: "WIN-DEF-001", status: "Healthy", health: "Good", lastSeen: "2025-06-30" },
+    { hostname: "WIN-DEF-002", status: "Unhealthy", health: "Warning", lastSeen: "2025-06-28" },
+  ],
+  articwolf: [
+    { hostname: "AW-001", status: "Healthy", health: "Good", lastSeen: "2025-06-29" },
+    { hostname: "AW-002", status: "Missing Agent", health: "N/A", lastSeen: "2025-05-30" },
+  ],
+  sccm: [
+    { hostname: "SCCM-001", status: "Healthy", health: "Good", lastSeen: "2025-06-30" },
+    { hostname: "SCCM-002", status: "Unhealthy", health: "Warning", lastSeen: "2025-06-25" },
+  ],
+  rapid7: [
+    { hostname: "R7-001", status: "Healthy", health: "Good", lastSeen: "2025-06-30" },
+    { hostname: "R7-002", status: "Unhealthy", health: "Critical", lastSeen: "2025-06-26" },
+  ],
+  crossref: [
+    // This would ideally be the cross reference data, simplified for now
+    { hostname: "WIN-DEF-001", defender: "Healthy", articwolf: "Healthy", sccm: "Healthy", rapid7: "Healthy" },
+    { hostname: "AW-002", defender: "Missing", articwolf: "Missing Agent", sccm: "Missing", rapid7: "Unhealthy" },
+  ],
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadTab(currentTab);
-  document.getElementById("search").addEventListener("input", filterTable);
+let currentPlatform = "defender";
+
+const tabs = document.querySelectorAll(".tab-btn");
+const tableContainer = document.getElementById("table-container");
+const searchInput = document.getElementById("searchInput");
+const refreshBtn = document.getElementById("refreshBtn");
+const apiNote = document.getElementById("api-note");
+
+// Render table based on currentPlatform and search filter
+function renderTable() {
+  const data = fetchAgentData(currentPlatform);
+  const filter = searchInput.value.toLowerCase();
+
+  // Filter data by hostname or status
+  const filteredData = data.filter((item) => {
+    return Object.values(item).some(
+      (val) => val.toString().toLowerCase().includes(filter)
+    );
+  });
+
+  if (filteredData.length === 0) {
+    tableContainer.innerHTML = "<p>No matching data found.</p>";
+    return;
+  }
+
+  let tableHtml = "<table><thead><tr>";
+
+  // Define columns depending on platform
+  if (currentPlatform === "crossref") {
+    tableHtml +=
+      "<th>Hostname</th><th>Defender</th><th>ArcticWolf</th><th>SCCM</th><th>Rapid7</th>";
+  } else {
+    tableHtml +=
+      "<th>Hostname</th><th>Status</th><th>Health</th><th>Last Seen</th>";
+  }
+  tableHtml += "</tr></thead><tbody>";
+
+  filteredData.forEach((row) => {
+    tableHtml += "<tr>";
+    if (currentPlatform === "crossref") {
+      tableHtml += `<td>${row.hostname}</td><td>${row.defender || "-"}</td><td>${row.articwolf || "-"}</td><td>${row.sccm || "-"}</td><td>${row.rapid7 || "-"}</td>`;
+    } else {
+      tableHtml += `<td>${row.hostname}</td><td>${row.status}</td><td>${row.health}</td><td>${row.lastSeen}</td>`;
+    }
+    tableHtml += "</tr>";
+  });
+
+  tableHtml += "</tbody></table>";
+  tableContainer.innerHTML = tableHtml;
+}
+
+// Stub for data fetching - currently returns mock data
+function fetchAgentData(platform) {
+  return mockData[platform] || [];
+}
+
+// Handle tab click
+tabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    tabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentPlatform = tab.getAttribute("data-platform");
+    searchInput.value = "";
+    renderTable();
+  });
 });
 
-function loadTab(tabName) {
-  currentTab = tabName;
-  document.getElementById("content").innerHTML = generateTable(tabName);
-  filterTable(); // Apply any search filters if needed
-}
+// Handle search input change
+searchInput.addEventListener("input", () => {
+  renderTable();
+});
 
-function generateTable(platform) {
-  const headers = ["Machine Name", "Agent Version", "Status", "Last Seen"];
-  const sampleData = [
-    { name: "DESKTOP-001", version: "1.2.3", status: "Healthy", lastSeen: "2025-06-30" },
-    { name: "SERVER-002", version: "2.1.0", status: "Outdated", lastSeen: "2025-06-28" },
-    { name: "LAPTOP-003", version: "1.0.0", status: "Missing", lastSeen: "2025-06-29" }
-  ];
+// Handle refresh button click (for demo, just re-renders)
+refreshBtn.addEventListener("click", () => {
+  renderTable();
+});
 
-  let html = `<h2>${platform} Agents</h2><table id="data-table"><thead><tr>`;
-  headers.forEach(h => html += `<th>${h}</th>`);
-  html += `</tr></thead><tbody>`;
-
-  sampleData.forEach(d => {
-    html += `<tr>
-      <td>${d.name}</td>
-      <td>${d.version}</td>
-      <td>${d.status}</td>
-      <td>${d.lastSeen}</td>
-    </tr>`;
-  });
-
-  html += `</tbody></table>`;
-  return html;
-}
-
-function filterTable() {
-  const input = document.getElementById("search").value.toLowerCase();
-  const rows = document.querySelectorAll("#data-table tbody tr");
-
-  rows.forEach(row => {
-    const text = row.innerText.toLowerCase();
-    row.style.display = text.includes(input) ? "" : "none";
-  });
-}
+// Initial render
+renderTable();
