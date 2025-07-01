@@ -1,30 +1,29 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Defender Agent Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Defender Agent Dashboard</h1>
-    <table>
-      <thead>
-        <tr>
-          <th>Device Name</th>
-          <th>Onboarding Status</th>
-          <th>Sensor Health</th>
-          <th>OS Platform</th>
-          <th>Last Seen</th>
-        </tr>
-      </thead>
-      <tbody id="device-table-body">
-        <!-- Rows will be injected here -->
-      </tbody>
-    </table>
+  <div class="sidebar">
+    <h2>Platforms</h2>
+    <ul>
+      <li data-tab="defender" class="active">Microsoft Defender</li>
+      <li data-tab="arcticwolf">Arctic Wolf</li>
+      <li data-tab="sccm">SCCM</li>
+      <li data-tab="rapid7">Rapid7</li>
+      <li data-tab="crossref">Cross-Reference</li>
+    </ul>
   </div>
-
+  <div class="main">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by machine name...">
+    </div>
+    <div id="content"></div>
+  </div>
   <script src="script.js"></script>
 </body>
 </html>
