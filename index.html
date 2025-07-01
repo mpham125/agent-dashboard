@@ -2,65 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agent Dashboard</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Platforms</h2>
-    <ul>
-      <li onclick="filterByPlatform('All')">All</li>
-      <li onclick="filterByPlatform('Defender')">Defender</li>
-      <li onclick="filterByPlatform('Rapid7')">Rapid7</li>
-      <li onclick="filterByPlatform('SCCM')">SCCM</li>
-      <li onclick="filterByPlatform('ArcticWolf')">ArcticWolf</li>
-    </ul>
-  </div>
 
-  <div class="main-content">
-    <h1>Agent Health Dashboard</h1>
+  <header>Agent Dashboard</header>
 
-    <div class="filters">
-      <select id="statusFilter" onchange="applyFilters()">
-        <option value="">All Status</option>
-        <option value="Healthy">Healthy</option>
-        <option value="Unhealthy">Unhealthy</option>
-      </select>
+  <div id="container">
 
-      <select id="healthFilter" onchange="applyFilters()">
-        <option value="">All Health States</option>
-        <option value="Good">Good</option>
-        <option value="Warning">Warning</option>
-        <option value="Error">Error</option>
-      </select>
+    <nav id="tabs" aria-label="Platform Tabs">
+      <button class="tab-btn active" data-platform="defender" aria-selected="true" role="tab" tabindex="0">
+        Defender
+      </button>
+      <button class="tab-btn" data-platform="arcticwolf" role="tab" tabindex="-1">
+        ArcticWolf
+      </button>
+      <button class="tab-btn" data-platform="sccm" role="tab" tabindex="-1">
+        SCCM
+      </button>
+      <button class="tab-btn" data-platform="rapid7" role="tab" tabindex="-1">
+        Rapid7
+      </button>
+      <button class="tab-btn" data-platform="crossref" role="tab" tabindex="-1">
+        Cross Reference
+      </button>
+    </nav>
 
-      <select id="osFilter" onchange="applyFilters()">
-        <option value="">All OS Types</option>
-        <option value="Windows">Windows</option>
-        <option value="Linux">Linux</option>
-        <option value="macOS">macOS</option>
-      </select>
+    <main class="main-content" role="tabpanel" tabindex="0">
+      <div id="api-note" class="api-note" role="alert" aria-live="polite">
+        <strong>Note:</strong> Backend API connection is pending AWS access. Displaying sample data.
+      </div>
 
-      <input type="date" id="dateFrom" onchange="applyFilters()" />
-      <input type="date" id="dateTo" onchange="applyFilters()" />
-    </div>
+      <div id="filter-container">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by hostname or status..."
+          aria-label="Search agent data"
+        />
+      </div>
 
-    <table id="agentTable">
-      <thead>
-        <tr>
-          <th>Platform</th>
-          <th>Hostname</th>
-          <th>Status</th>
-          <th>Health</th>
-          <th>Last Seen</th>
-          <th>IP Address</th>
-          <th>Operating System</th>
-          <th>Version</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <div id="table-container" aria-live="polite" aria-relevant="all"></div>
+
+      <button id="refreshBtn" aria-label="Refresh dashboard data">Refresh Data</button>
+    </main>
+
   </div>
 
   <script src="script.js"></script>
