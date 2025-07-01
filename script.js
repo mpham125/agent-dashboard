@@ -1,112 +1,86 @@
-// Sample Data for each platform (replace with API calls later)
+// Existing platforms data example with added fields:
+
 const sampleData = {
   defender: [
-    { hostname: "WS-001", status: "Healthy", health: "Good", lastSeen: "2025-06-30" },
-    { hostname: "SRV-005", status: "Missing Agent", health: "N/A", lastSeen: "2025-06-28" },
-    { hostname: "WS-008", status: "Unhealthy", health: "Critical", lastSeen: "2025-06-29" },
+    {
+      hostname: "workstation-01",
+      status: "Healthy",
+      health: "Good",
+      lastSeen: "2025-07-01 14:23",
+      ipAddress: "192.168.1.101",
+      operatingSystem: "Windows 10 Pro",
+      version: "4.18.2103.7"
+    },
+    {
+      hostname: "server-02",
+      status: "Unhealthy",
+      health: "Error",
+      lastSeen: "2025-06-30 09:11",
+      ipAddress: "192.168.1.52",
+      operatingSystem: "Windows Server 2019",
+      version: "4.18.2103.7"
+    },
   ],
   arcticwolf: [
-    { hostname: "WS-002", status: "Healthy", health: "Good", lastSeen: "2025-06-30" },
-    { hostname: "WS-003", status: "Healthy", health: "Good", lastSeen: "2025-06-29" },
+    // similar structure
   ],
   sccm: [
-    { hostname: "SRV-001", status: "Healthy", health: "Good", lastSeen: "2025-06-30" },
-    { hostname: "WS-004", status: "Missing Agent", health: "N/A", lastSeen: "2025-06-27" },
+    // similar structure
   ],
   rapid7: [
-    { hostname: "WS-006", status: "Unhealthy", health: "Warning", lastSeen: "2025-06-25" },
-    { hostname: "SRV-002", status: "Healthy", health: "Good", lastSeen: "2025-06-29" },
+    // similar structure
   ],
   crossref: [
-    { hostname: "WS-001", defender: "Healthy", arcticwolf: "Healthy", sccm: "Missing", rapid7: "Healthy" },
-    { hostname: "SRV-005", defender: "Missing", arcticwolf: "N/A", sccm: "Healthy", rapid7: "Unhealthy" },
+    // data combining info from platforms if needed
   ],
 };
 
-let currentPlatform = "defender";
+// Function to generate the table with the new fields
 
-const tabs = document.querySelectorAll(".tab-btn");
-const tableContainer = document.getElementById("table-container");
-const searchInput = document.getElementById("searchInput");
-const refreshBtn = document.getElementById("refreshBtn");
+function renderTable(platform) {
+  const container = document.getElementById("table-container");
+  const data = sampleData[platform] || [];
 
-function renderTable(data) {
-  if (!data || data.length === 0) {
-    tableContainer.innerHTML = "<p>No data available.</p>";
+  if (data.length === 0) {
+    container.innerHTML = `<p>No data available for ${platform}</p>`;
     return;
   }
 
-  // Determine columns dynamically based on first item keys
-  const columns = Object.keys(data[0]);
+  // Build table headers including new fields
+  const tableHeaders = [
+    "Hostname",
+    "Status",
+    "Health",
+    "Last Seen",
+    "IP Address",
+    "Operating System",
+    "Version",
+  ];
 
-  // Build table headers
-  let html = "<table><thead><tr>";
-  for (const col of columns) {
-    html += `<th>${col.charAt(0).toUpperCase() + col.slice(1)}</th>`;
-  }
-  html += "</tr></thead><tbody>";
+  let table = "<table><thead><tr>";
+  tableHeaders.forEach(header => {
+    table += `<th>${header}</th>`;
+  });
+  table += "</tr></thead><tbody>";
 
-  // Build table rows
-  for (const row of data) {
-    html += "<tr>";
-    for (const col of columns) {
-      html += `<td>${row[col] ?? ""}</td>`;
-    }
-    html += "</tr>";
-  }
-
-  html += "</tbody></table>";
-  tableContainer.innerHTML = html;
-}
-
-function filterTable() {
-  const query = searchInput.value.toLowerCase();
-  let filtered;
-
-  if (currentPlatform === "crossref") {
-    filtered = sampleData.crossref.filter(item => {
-      return Object.values(item).some(val =>
-        String(val).toLowerCase().includes(query)
-      );
-    });
-  } else {
-    filtered = sampleData[currentPlatform].filter(item => {
-      return Object.values(item).some(val =>
-        String(val).toLowerCase().includes(query)
-      );
-    });
-  }
-  renderTable(filtered);
-}
-
-function setActiveTab(tabBtn) {
-  tabs.forEach(t => {
-    t.classList.remove("active");
-    t.setAttribute("aria-selected", "false");
-    t.setAttribute("tabindex", "-1");
+  data.forEach(item => {
+    table += "<tr>";
+    table += `<td>${item.hostname}</td>`;
+    table += `<td>${item.status}</td>`;
+    table += `<td>${item.health}</td>`;
+    table += `<td>${item.lastSeen}</td>`;
+    table += `<td>${item.ipAddress || "N/A"}</td>`;
+    table += `<td>${item.operatingSystem || "N/A"}</td>`;
+    table += `<td>${item.version || "N/A"}</td>`;
+    table += "</tr>";
   });
 
-  tabBtn.classList.add("active");
-  tabBtn.setAttribute("aria-selected", "true");
-  tabBtn.setAttribute("tabindex", "0");
-  currentPlatform = tabBtn.getAttribute("data-platform");
-
-  searchInput.value = "";
-  renderTable(sampleData[currentPlatform]);
+  table += "</tbody></table>";
+  container.innerHTML = table;
 }
 
-tabs.forEach(tabBtn => {
-  tabBtn.addEventListener("click", () => {
-    setActiveTab(tabBtn);
-  });
-});
+// The rest of your tab switching and filtering code remains the same,
+// just make sure to call renderTable() with correct platform keys
 
-searchInput.addEventListener("input", filterTable);
-
-refreshBtn.addEventListener("click", () => {
-  // Placeholder for refresh function, ideally fetch data from backend
-  alert("Refresh triggered - backend connection pending AWS access.");
-});
-
-// Initial render
-renderTable(sampleData[currentPlatform]);
+// Example of calling renderTable for initial platform
+renderTable("defender");
