@@ -4,11 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agent Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <header>Agent Dashboard</header>
+  <header class="header">Agent Dashboard</header>
 
   <div id="container">
 
@@ -31,26 +36,52 @@
     </nav>
 
     <main class="main-content" role="tabpanel" tabindex="0">
-      <div id="api-note" class="api-note" role="alert" aria-live="polite">
+      <div id="api-note" class="api-note alert alert-info" role="alert" aria-live="polite">
         <strong>Note:</strong> Backend API connection is pending AWS access. Displaying sample data.
       </div>
 
-      <div id="filter-container">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Search by hostname or status..."
-          aria-label="Search agent data"
-        />
+      <div id="filter-container" class="mb-3 row g-2 align-items-center">
+        <div class="col-md-4 col-lg-4">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search by hostname..."
+            aria-label="Search agent data"
+            class="form-control"
+          />
+        </div>
+        <div class="col-md-3 col-lg-3">
+          <select id="statusFilter" class="form-select" aria-label="Filter by status">
+            <option value="">All Status</option>
+            <option value="Installed">Installed</option>
+            <option value="Missing">Missing</option>
+            <option value="Unhealthy">Unhealthy</option>
+            <option value="Healthy">Healthy</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-lg-3">
+          <select id="osFilter" class="form-select" aria-label="Filter by OS Type">
+            <option value="">All OS Types</option>
+            <option value="Windows 10">Windows 10</option>
+            <option value="Windows 11">Windows 11</option>
+            <option value="Windows Server">Windows Server</option>
+            <option value="Linux">Linux</option>
+            <option value="macOS">macOS</option>
+          </select>
+        </div>
+        <div class="col-md-2 col-lg-2 d-flex justify-content-end gap-2">
+          <button id="exportBtn" class="btn btn-primary" aria-label="Export visible data as CSV">Export CSV</button>
+          <button id="refreshBtn" class="btn btn-outline-secondary" aria-label="Refresh dashboard data">Refresh</button>
+        </div>
       </div>
 
       <div id="table-container" aria-live="polite" aria-relevant="all"></div>
-
-      <button id="refreshBtn" aria-label="Refresh dashboard data">Refresh Data</button>
     </main>
 
   </div>
 
+  <!-- Bootstrap Bundle JS (with Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

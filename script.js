@@ -1,86 +1,279 @@
-// Existing platforms data example with added fields:
-
 const sampleData = {
   defender: [
     {
-      hostname: "workstation-01",
-      status: "Healthy",
-      health: "Good",
-      lastSeen: "2025-07-01 14:23",
-      ipAddress: "192.168.1.101",
-      operatingSystem: "Windows 10 Pro",
-      version: "4.18.2103.7"
+      hostname: "WS-1234",
+      status: "Installed",
+      health: "Healthy",
+      ip: "192.168.1.101",
+      os: "Windows 10",
+      version: "4.18.2108.9",
     },
     {
-      hostname: "server-02",
-      status: "Unhealthy",
-      health: "Error",
-      lastSeen: "2025-06-30 09:11",
-      ipAddress: "192.168.1.52",
-      operatingSystem: "Windows Server 2019",
-      version: "4.18.2103.7"
+      hostname: "SRV-5678",
+      status: "Installed",
+      health: "Unhealthy",
+      ip: "192.168.1.200",
+      os: "Windows Server",
+      version: "4.18.2108.9",
     },
   ],
   arcticwolf: [
-    // similar structure
+    {
+      hostname: "AW-1001",
+      status: "Missing",
+      health: "N/A",
+      ip: "10.10.0.5",
+      os: "Linux",
+      version: "2.3.4",
+    },
   ],
   sccm: [
-    // similar structure
+    {
+      hostname: "SCCM-001",
+      status: "Installed",
+      health: "Healthy",
+      ip: "10.0.0.1",
+      os: "Windows 11",
+      version: "5.2.0",
+    },
   ],
   rapid7: [
-    // similar structure
+    {
+      hostname: "R7-9999",
+      status: "Installed",
+      health: "Healthy",
+      ip: "172.16.0.10",
+      os: "Windows 10",
+      version: "3.1.7",
+    },
   ],
-  crossref: [
-    // data combining info from platforms if needed
-  ],
+  crossref: [],
 };
 
-// Function to generate the table with the new fields
+let currentPlatform = "defender";
+let currentData = [];
+let filteredData = [];
+let currentSort = { key: null, ascending: true };
 
-function renderTable(platform) {
-  const container = document.getElementById("table-container");
-  const data = sampleData[platform] || [];
+const tabs = document.querySelectorAll(".tab-btn");
+const tableContainer = document.getElementById("table-container");
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
+const osFilter = document.getElementById("osFilter");
+const exportBtn = document.getElementById("exportBtn");
+const refreshBtn = document.getElementById("refreshBtn");
 
-  if (data.length === 0) {
-    container.innerHTML = `<p>No data available for ${platform}</p>`;
+function init() {
+  setupTabs();
+  loadPlatformData(currentPlatform);
+  setupFilters();
+  setupExport();
+  setupRefresh();
+  setupAutoRefresh();
+}
+
+function setupTabs() {
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      if (tab.classList.contains("active")) return;
+      tabs.forEach((t) => {
+        t.classList.remove("active");
+        t.setAttribute("aria-selected", "false");
+        t.setAttribute("tabindex", "-1");
+      });
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+      tab.setAttribute("tabindex", "0");
+      currentPlatform = tab.dataset.platform;
+      loadPlatformData(currentPlatform);
+      resetFilters();
+    });
+  });
+}
+
+function resetFilters() {
+  searchInput.value = "";
+  statusFilter.value = "";
+  osFilter.value = "";
+}
+
+function loadPlatformData(platform) {
+  if (platform === "crossref") {
+    currentData = [];
+    const labelMap = {
+      defender: "Defender",
+      arcticwolf: "ArcticWolf",
+      sccm: "SCCM",
+      rapid7: "Rapid7",
+    };
+
+    Object.entries(sampleData).forEach(([key, data]) => {
+      if (key !== "crossref") {
+        const platformData = data.map((item) => ({
+          ...item,
+          platform: labelMap[key] || key,
+        }));
+        currentData = currentData.concat(platformData);
+      }
+    });
+  } else {
+    currentData = sampleData[platform] || [];
+  }
+
+  currentSort = { key: null, ascending: true };
+  applyFiltersAndRender();
+}
+
+function setupFilters() {
+  [searchInput, statusFilter, osFilter].forEach((el) => {
+    el.addEventListener("input", applyFiltersAndRender);
+    el.addEventListener("change", applyFiltersAndRender);
+  });
+}
+
+function applyFiltersAndRender() {
+  const searchVal = searchInput.value.trim().toLowerCase();
+  const statusVal = statusFilter.value;
+  const osVal = osFilter.value;
+
+  filteredData = currentData.filter((item) => {
+    const matchesSearch =
+      item.hostname.toLowerCase().includes(searchVal) ||
+      (item.status && item.status.toLowerCase().includes(searchVal));
+    const matchesStatus = statusVal ? item.status === statusVal : true;
+    const matchesOS = osVal ? item.os === osVal : true;
+
+    return matchesSearch && matchesStatus && matchesOS;
+  });
+
+  applySort();
+  renderTable();
+}
+
+function applySort() {
+  if (!currentSort.key) return;
+  filteredData.sort((a, b) => {
+    let valA = a[currentSort.key] ?? "";
+    let valB = b[currentSort.key] ?? "";
+
+    if (typeof valA === "string") valA = valA.toLowerCase();
+    if (typeof valB === "string") valB = valB.toLowerCase();
+
+    if (valA < valB) return currentSort.ascending ? -1 : 1;
+    if (valA > valB) return currentSort.ascending ? 1 : -1;
+    return 0;
+  });
+}
+
+function renderTable() {
+  if (filteredData.length === 0) {
+    tableContainer.innerHTML = "<p>No data to display.</p>";
     return;
   }
 
-  // Build table headers including new fields
-  const tableHeaders = [
-    "Hostname",
-    "Status",
-    "Health",
-    "Last Seen",
-    "IP Address",
-    "Operating System",
-    "Version",
-  ];
+  const isCrossRef = currentPlatform === "crossref";
 
-  let table = "<table><thead><tr>";
-  tableHeaders.forEach(header => {
-    table += `<th>${header}</th>`;
+  let html = `<table class="table" role="grid" aria-label="Agent Data Table">
+    <thead>
+      <tr>
+        ${isCrossRef ? renderSortableHeader("platform", "Platform") : ""}
+        ${renderSortableHeader("hostname", "Hostname")}
+        ${renderSortableHeader("status", "Status")}
+        ${renderSortableHeader("health", "Health")}
+        ${renderSortableHeader("ip", "IP Address")}
+        ${renderSortableHeader("os", "Operating System")}
+        ${renderSortableHeader("version", "Version")}
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  filteredData.forEach((row) => {
+    html += `<tr>
+      ${isCrossRef ? `<td>${row.platform || ""}</td>` : ""}
+      <td>${row.hostname}</td>
+      <td>${row.status}</td>
+      <td>${row.health}</td>
+      <td>${row.ip}</td>
+      <td>${row.os}</td>
+      <td>${row.version}</td>
+    </tr>`;
   });
-  table += "</tr></thead><tbody>";
 
-  data.forEach(item => {
-    table += "<tr>";
-    table += `<td>${item.hostname}</td>`;
-    table += `<td>${item.status}</td>`;
-    table += `<td>${item.health}</td>`;
-    table += `<td>${item.lastSeen}</td>`;
-    table += `<td>${item.ipAddress || "N/A"}</td>`;
-    table += `<td>${item.operatingSystem || "N/A"}</td>`;
-    table += `<td>${item.version || "N/A"}</td>`;
-    table += "</tr>";
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
+
+  document.querySelectorAll("th.sortable").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.key;
+      if (currentSort.key === key) {
+        currentSort.ascending = !currentSort.ascending;
+      } else {
+        currentSort.key = key;
+        currentSort.ascending = true;
+      }
+      applyFiltersAndRender();
+    });
   });
-
-  table += "</tbody></table>";
-  container.innerHTML = table;
 }
 
-// The rest of your tab switching and filtering code remains the same,
-// just make sure to call renderTable() with correct platform keys
+function renderSortableHeader(key, label) {
+  const isSorted = currentSort.key === key;
+  const arrow = isSorted ? (currentSort.ascending ? "▲" : "▼") : "";
+  const sortedClass = isSorted ? (currentSort.ascending ? "sorted-asc" : "sorted-desc") : "";
+  return `<th class="sortable ${sortedClass}" data-key="${key}" scope="col">${label} <span class="sort-arrow">${arrow}</span></th>`;
+}
 
-// Example of calling renderTable for initial platform
-renderTable("defender");
+function setupExport() {
+  exportBtn.addEventListener("click", () => {
+    if (filteredData.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+    exportToCSV(filteredData);
+  });
+}
+
+function exportToCSV(data) {
+  const includePlatform = currentPlatform === "crossref";
+  const headers = includePlatform
+    ? ["Platform", "Hostname", "Status", "Health", "IP Address", "OS", "Version"]
+    : ["Hostname", "Status", "Health", "IP Address", "OS", "Version"];
+
+  const csvRows = [headers.join(",")];
+
+  data.forEach((row) => {
+    const values = headers.map((header) => {
+      const key = header.toLowerCase().replace(/ /g, "");
+      return `"${(row[key] || row[header.toLowerCase()]) ?? ""}"`;
+    });
+    csvRows.push(values.join(","));
+  });
+
+  const csvContent = csvRows.join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `agent-dashboard-${currentPlatform}.csv`;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function setupRefresh() {
+  refreshBtn.addEventListener("click", () => {
+    loadPlatformData(currentPlatform);
+  });
+}
+
+function setupAutoRefresh() {
+  setInterval(() => {
+    loadPlatformData(currentPlatform);
+  }, 5 * 60 * 1000); // every 5 minutes
+}
+
+init();
